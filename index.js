@@ -29,9 +29,32 @@ async function run() {
 
     const toysCollection = client.db('toysVerse').collection('toys');
 
+    // Creating index
+    const indexKeys = { toyName: 1};
+    const indexOptions = { name: "toyName"};
+
+    const result = await toysCollection.createIndex(indexKeys, indexOptions);
+
+    app.get("/toySearchByName/:text", async(req, res) => {
+        const searchText = req.params.text;
+        const result = await toysCollection.find({
+            $or:[
+                {toyName : { $regex: searchText, $options: "i"}}
+            ]
+        })
+        .toArray();
+        res.send(result)
+    })
+
     app.get('/toys', async(req, res) => {
         const cursor = toysCollection.find();
         const result = await cursor.toArray();
+        res.send(result);
+    })
+
+    app.get('/allToys', async(req, res) => {
+        const cursor = toysCollection.find();
+        const result = await cursor.limit(20).toArray();
         res.send(result);
     })
 
