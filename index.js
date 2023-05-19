@@ -29,6 +29,16 @@ async function run() {
 
     const toysCollection = client.db('toysVerse').collection('toys');
 
+    app.post('/allToys', async (req, res) => {
+      const body = req.body;
+      body.createdAt = new Date();
+      if(!body){
+        return res.status(404).send({message: "Data not found, Not Valid Request."})
+      }
+      const result = await toysCollection.insertOne(body);
+      res.send(result)
+    })
+
     // Creating index
     const indexKeys = { toyName: 1};
     const indexOptions = { name: "toyName"};
@@ -53,7 +63,7 @@ async function run() {
     })
 
     app.get('/allToys', async(req, res) => {
-        const cursor = toysCollection.find();
+        const cursor = toysCollection.find().sort({createdAt: 1});
         const result = await cursor.limit(20).toArray();
         res.send(result);
     })
@@ -65,6 +75,10 @@ async function run() {
         res.send(result);
     })
 
+    app.get('/myToys/:email', async (req, res) => {
+      const result = await toysCollection.find({sellerEmail: req.params.email}).toArray();
+      res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
