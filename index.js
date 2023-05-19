@@ -28,6 +28,7 @@ async function run() {
     await client.connect();
 
     const toysCollection = client.db('toysVerse').collection('toys');
+    const upcomingCollection = client.db('toysVerse').collection('upcoming');
 
     app.post('/allToys', async (req, res) => {
       const body = req.body;
@@ -62,12 +63,19 @@ async function run() {
         res.send(result);
     })
 
+    app.get('/upcoming', async(req, res) => {
+        const cursor = upcomingCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+    })
+
     app.get('/allToys', async(req, res) => {
         const cursor = toysCollection.find().sort({createdAt: 1});
         const result = await cursor.limit(20).toArray();
         res.send(result);
-    })
+    });
 
+    
     app.get('/toys/:id', async(req, res) => {
         const id = req.params.id;
         const query = {_id: new ObjectId(id)}
