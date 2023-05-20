@@ -19,17 +19,26 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  maxPoolSize: 10,
 });
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+   client.connect((err) => {
+    if(err) {
+      console.error(err);
+      return;
+    }
+   });
 
     const toysCollection = client.db('toysVerse').collection('toys');
     const upcomingCollection = client.db('toysVerse').collection('upcoming');
 
+    // Post Added Toys
     app.post('/allToys', async (req, res) => {
       const body = req.body;
       body.createdAt = new Date();
@@ -46,6 +55,7 @@ async function run() {
 
     const result = await toysCollection.createIndex(indexKeys, indexOptions);
 
+    // Get toys by search
     app.get("/toySearchByName/:text", async(req, res) => {
         const searchText = req.params.text;
         const result = await toysCollection.find({
@@ -57,18 +67,21 @@ async function run() {
         res.send(result)
     })
 
+    // Get all toys
     app.get('/toys', async(req, res) => {
         const cursor = toysCollection.find();
         const result = await cursor.toArray();
         res.send(result);
     })
 
+    // Get upcoming toys
     app.get('/upcoming', async(req, res) => {
         const cursor = upcomingCollection.find();
         const result = await cursor.toArray();
         res.send(result);
     })
 
+    // Get all Toys with limit
     app.get('/allToys', async(req, res) => {
         const cursor = toysCollection.find().sort({createdAt: 1});
         const result = await cursor.limit(20).toArray();
@@ -92,6 +105,15 @@ async function run() {
 
     app.get('/myToys/:email', async (req, res) => {
       const result = await toysCollection.find({sellerEmail: req.params.email}).toArray();
+      res.send(result);
+    })
+// Sorting Data
+    app.get('/myToys/:email/lowPrice', async (req, res) => {
+      const result = await toysCollection.find({sellerEmail: req.params.email}).sort({"price": 1}).toArray();
+      res.send(result);
+    })
+    app.get('/myToys/:email/highPrice', async (req, res) => {
+      const result = await toysCollection.find({sellerEmail: req.params.email}).sort({"price": -1}).toArray();
       res.send(result);
     })
 
