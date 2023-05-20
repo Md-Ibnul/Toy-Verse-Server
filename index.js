@@ -28,12 +28,12 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-   client.connect((err) => {
-    if(err) {
-      console.error(err);
-      return;
-    }
-   });
+  //   client.connect((error) => {
+  //     if(error) {
+  //       console.error(error);
+  //       return;
+  //     }
+  //  });
 
     const toysCollection = client.db('toysVerse').collection('toys');
     const upcomingCollection = client.db('toysVerse').collection('upcoming');
@@ -50,10 +50,10 @@ async function run() {
     })
 
     // Creating index
-    const indexKeys = { toyName: 1};
-    const indexOptions = { name: "toyName"};
+    // const indexKeys = { toyName: 1};
+    // const indexOptions = { name: "toyName"};
 
-    const result = await toysCollection.createIndex(indexKeys, indexOptions);
+    // const result = await toysCollection.createIndex(indexKeys, indexOptions);
 
     // Get toys by search
     app.get("/toySearchByName/:text", async(req, res) => {
@@ -88,7 +88,7 @@ async function run() {
         res.send(result);
     });
 
-    
+    // Get single toy
     app.get('/toys/:id', async(req, res) => {
         const id = req.params.id;
         const query = {_id: new ObjectId(id)}
@@ -102,11 +102,12 @@ async function run() {
         const result = await toysCollection.findOne(query);
         res.send(result);
     })
-
+// get My Loaded Data
     app.get('/myToys/:email', async (req, res) => {
       const result = await toysCollection.find({sellerEmail: req.params.email}).toArray();
       res.send(result);
     })
+    
 // Sorting Data
     app.get('/myToys/:email/lowPrice', async (req, res) => {
       const result = await toysCollection.find({sellerEmail: req.params.email}).sort({"price": 1}).toArray();
